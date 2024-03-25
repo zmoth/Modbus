@@ -39,17 +39,17 @@ Connection::~Connection()
 
 std::vector<uint8_t> Connection::send_request(const MB::ModbusRequest &request)
 {
-    return send(request.toRaw());
+    return send(request.to_raw());
 }
 
-std::vector<uint8_t> Connection::sendResponse(const MB::ModbusResponse &response)
+std::vector<uint8_t> Connection::send_response(const MB::ModbusResponse &response)
 {
-    return send(response.toRaw());
+    return send(response.to_raw());
 }
 
-std::vector<uint8_t> Connection::sendException(const MB::ModbusException &exception)
+std::vector<uint8_t> Connection::send_exception(const MB::ModbusException &exception)
 {
-    return send(exception.toRaw());
+    return send(exception.to_raw());
 }
 
 std::vector<uint8_t> Connection::await_raw_message()
@@ -59,13 +59,13 @@ std::vector<uint8_t> Connection::await_raw_message()
     pollfd waitingFD = {.fd = _fd, .events = POLLIN, .revents = POLLIN};
 
     if (::poll(&waitingFD, 1, _timeout) <= 0) {
-        throw MB::ModbusException(MB::utils::Timeout);
+        throw MB::ModbusException(MB::Utils::Timeout);
     }
 
     auto size = ::read(_fd, data.begin().base(), 1024);
 
     if (size < 0) {
-        throw MB::ModbusException(MB::utils::SlaveDeviceFailure);
+        throw MB::ModbusException(MB::Utils::SlaveDeviceFailure);
     }
 
     data.resize(size);
@@ -80,7 +80,7 @@ std::tuple<MB::ModbusResponse, std::vector<uint8_t>> Connection::await_response(
     std::vector<uint8_t> data;
     data.reserve(8);
 
-    MB::ModbusResponse response(0, MB::utils::ReadAnalogInputRegisters);
+    MB::ModbusResponse response(0, MB::Utils::ReadAnalogInputRegisters);
 
     while (true) {
         try {
@@ -90,12 +90,13 @@ std::tuple<MB::ModbusResponse, std::vector<uint8_t>> Connection::await_response(
             if (MB::ModbusException::exist(data))
                 throw MB::ModbusException(data);
 
-            response = MB::ModbusResponse::fromRawCRC(data);
+            response = MB::ModbusResponse::from_raw_crc(data);
             break;
         } catch (const MB::ModbusException &ex) {
-            if (MB::utils::isStandardErrorCode(ex.getErrorCode()) || ex.getErrorCode() == MB::utils::Timeout ||
-                ex.getErrorCode() == MB::utils::SlaveDeviceFailure)
+            if (MB::Utils::is_standard_error_code(ex.get_error_code()) || ex.get_error_code() == MB::Utils::Timeout ||
+                ex.get_error_code() == MB::Utils::SlaveDeviceFailure) {
                 throw ex;
+            }
             continue;
         }
     }
@@ -108,18 +109,19 @@ std::tuple<MB::ModbusRequest, std::vector<uint8_t>> Connection::await_request()
     std::vector<uint8_t> data;
     data.reserve(8);
 
-    MB::ModbusRequest request(0, MB::utils::ReadAnalogInputRegisters);
+    MB::ModbusRequest request(0, MB::Utils::ReadAnalogInputRegisters);
 
     while (true) {
         try {
-            auto tmpResponse = await_raw_message();
-            data.insert(data.end(), tmpResponse.begin(), tmpResponse.end());
+            auto tmp_response = await_raw_message();
+            data.insert(data.end(), tmp_response.begin(), tmp_response.end());
 
-            request = MB::ModbusRequest::fromRawCRC(data);
+            request = MB::ModbusRequest::from_raw_crc(data);
             break;
         } catch (const MB::ModbusException &ex) {
-            if (ex.getErrorCode() == MB::utils::Timeout || ex.getErrorCode() == MB::utils::SlaveDeviceFailure)
+            if (ex.get_error_code() == MB::Utils::Timeout || ex.get_error_code() == MB::Utils::SlaveDeviceFailure) {
                 throw ex;
+            }
             continue;
         }
     }
@@ -130,7 +132,7 @@ std::tuple<MB::ModbusRequest, std::vector<uint8_t>> Connection::await_request()
 std::vector<uint8_t> Connection::send(std::vector<uint8_t> data)
 {
     data.reserve(data.size() + 2);
-    const auto crc = utils::calculateCRC(data.begin().base(), data.size());
+    const auto crc = Utils::calculate_crc(data.begin().base(), data.size());
 
     data.push_back(reinterpret_cast<const uint8_t *>(&crc)[0]);
     data.push_back(reinterpret_cast<const uint8_t *>(&crc)[1]);

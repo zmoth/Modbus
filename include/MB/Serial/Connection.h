@@ -14,10 +14,10 @@
 #    include <tuple>
 #    include <vector>
 
-#    include "MB/modbusException.h"
-#    include "MB/modbusRequest.h"
-#    include "MB/modbusResponse.h"
-#    include "MB/modbusUtils.h"
+#    include "MB/ModbusException.h"
+#    include "MB/ModbusRequest.h"
+#    include "MB/ModbusResponse.h"
+#    include "MB/ModbusUtils.h"
 
 namespace MB::Serial {
 
