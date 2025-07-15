@@ -59,10 +59,6 @@ include(GNUInstallDirs)
 
 # 如果此项目作为其他项目的第三方库，以下的配置不生效
 if(${PROJECT_IS_TOP_LEVEL})
-  # 禁止在源目录编译以及修改，可以在不小心在当前目录编译的时候，报错退出，防止污染源代码：
-  set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-  set(CMAKE_DISABLE_SOURCE_CHANGES ON)
-
   # 设置输出路径
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}) # 静态库的文件夹位置
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}) # 动态库的文件夹位置
@@ -108,14 +104,14 @@ add_subdirectory(src) # 添加源文件
 # 添加配置头文件，将CMake中的版本等信息转换为头文件
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/include/Config.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/MB/Config.h"
 )
 
 # 生成输出头文件
 include(GenerateExportHeader)
 generate_export_header(
   ${PROJECT_NAME}
-  EXPORT_FILE_NAME "${CMAKE_CURRENT_BINARY_DIR}/include/Export.h"
+  EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/MB/Export.h"
 )
 
 # 头文件路径
