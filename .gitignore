@@ -1,3 +1,6 @@
+include/MB/config.h
+include/MB/Export.h
+
 # Prerequisites
 *.d
 
